@@ -23,6 +23,11 @@ module SSHData
       [:nkeys,      :uint32],
     ]
 
+    # Fields in an Dilithium private key (key generation produces only a pointer to an integer array)
+    DILITHIUM_PRIVATE_KEY_FIELDS = [
+      [:private_key_int8_array, :int8_array]
+    ]
+
     # Fields in an RSA private key
     RSA_PRIVATE_KEY_FIELDS = [
       [:n,       :mpint],
@@ -53,6 +58,11 @@ module SSHData
     ED25519_PRIVATE_KEY_FIELDS = [
       [:pk, :string],
       [:sk, :string]
+    ]
+
+    # Fields in a Dilithium public key (key generation produces only a pointer to an integer array)
+    DILITHIUM_KEY_FIELDS = [
+      [:public_key_int8_array, :int8_array]
     ]
 
     # Fields in an RSA public key
@@ -94,6 +104,7 @@ module SSHData
     ]
 
     PUBLIC_KEY_ALGO_BY_CERT_ALGO = {
+      Certificate::ALGO_DILITHIUM  => PublicKey::ALGO_DILITHIUM,
       Certificate::ALGO_RSA        => PublicKey::ALGO_RSA,
       Certificate::ALGO_DSA        => PublicKey::ALGO_DSA,
       Certificate::ALGO_ECDSA256   => PublicKey::ALGO_ECDSA256,
@@ -105,6 +116,7 @@ module SSHData
     }
 
     CERT_ALGO_BY_PUBLIC_KEY_ALGO = {
+      PublicKey::ALGO_DILITHIUM  => Certificate::ALGO_DILITHIUM,
       PublicKey::ALGO_RSA        => Certificate::ALGO_RSA,
       PublicKey::ALGO_DSA        => Certificate::ALGO_DSA,
       PublicKey::ALGO_ECDSA256   => Certificate::ALGO_ECDSA256,
@@ -116,23 +128,25 @@ module SSHData
     }
 
     KEY_FIELDS_BY_PUBLIC_KEY_ALGO = {
-      PublicKey::ALGO_RSA      => RSA_KEY_FIELDS,
-      PublicKey::ALGO_DSA      => DSA_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA256 => ECDSA_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA384 => ECDSA_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA521 => ECDSA_KEY_FIELDS,
-      PublicKey::ALGO_ED25519  => ED25519_KEY_FIELDS,
-      PublicKey::ALGO_SKED25519 => SKED25519_KEY_FIELDS,
+      PublicKey::ALGO_DILITHIUM  => DILITHIUM_KEY_FIELDS,
+      PublicKey::ALGO_RSA        => RSA_KEY_FIELDS,
+      PublicKey::ALGO_DSA        => DSA_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA256   => ECDSA_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA384   => ECDSA_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA521   => ECDSA_KEY_FIELDS,
+      PublicKey::ALGO_ED25519    => ED25519_KEY_FIELDS,
+      PublicKey::ALGO_SKED25519  => SKED25519_KEY_FIELDS,
       PublicKey::ALGO_SKECDSA256 => SKECDSA_KEY_FIELDS,
     }
 
     KEY_FIELDS_BY_PRIVATE_KEY_ALGO = {
-      PublicKey::ALGO_RSA      => RSA_PRIVATE_KEY_FIELDS,
-      PublicKey::ALGO_DSA      => DSA_PRIVATE_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA256 => ECDSA_PRIVATE_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA384 => ECDSA_PRIVATE_KEY_FIELDS,
-      PublicKey::ALGO_ECDSA521 => ECDSA_PRIVATE_KEY_FIELDS,
-      PublicKey::ALGO_ED25519  => ED25519_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_DILITHIUM => DILITHIUM_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_RSA       => RSA_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_DSA       => DSA_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA256  => ECDSA_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA384  => ECDSA_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_ECDSA521  => ECDSA_PRIVATE_KEY_FIELDS,
+      PublicKey::ALGO_ED25519   => ED25519_PRIVATE_KEY_FIELDS,
     }
 
     # Get the type from a PEM encoded blob.
@@ -449,6 +463,8 @@ module SSHData
           encode_uint32(value)
         when :options
           encode_options(value)
+        when :int8_array
+          encode_int8_array(array)
         else
           raise DecodeError, "bad type: #{type}"
         end
@@ -732,6 +748,15 @@ module SSHData
     # Returns an encoded representation of the value.
     def encode_uint8(value)
       [value].pack("C")
+    end
+
+    # Encoding an array of Integer in range [-128..127] as array of int8 (signed 8-Bit integer)
+    #
+    # array - The Array of Integer to encode.
+    #
+    # Returns an array of the encoded representations of the integers.
+    def encode_int8_array(array)
+      array.pack("c*")
     end
 
     extend self

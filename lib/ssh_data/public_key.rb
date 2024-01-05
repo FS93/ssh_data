@@ -1,6 +1,7 @@
 module SSHData
   module PublicKey
     # Public key algorithm identifiers
+    ALGO_DILITHIUM  = "ssh-dilithium5" # following the OQS-OpenSSH fork (https://github.com/open-quantum-safe/openssh/blob/OQS-v8/sshkey.c#L235)
     ALGO_RSA        = "ssh-rsa"
     ALGO_DSA        = "ssh-dss"
     ALGO_ECDSA256   = "ecdsa-sha2-nistp256"
@@ -16,7 +17,7 @@ module SSHData
     ALGO_RSA_SHA2_512 = "rsa-sha2-512"
 
     ALGOS = [
-      ALGO_RSA, ALGO_DSA, ALGO_ECDSA256, ALGO_ECDSA384, ALGO_ECDSA521,
+      ALGO_DILITHIUM, ALGO_RSA, ALGO_DSA, ALGO_ECDSA256, ALGO_ECDSA384, ALGO_ECDSA521,
       ALGO_ED25519, ALGO_SKECDSA256, ALGO_SKED25519
     ]
 
@@ -58,6 +59,8 @@ module SSHData
 
     def self.from_data(data)
       case data[:algo]
+      when ALGO_DILITHIUM
+        DILITHIUM.new(**data)
       when ALGO_RSA
         RSA.new(**data)
       when ALGO_DSA
@@ -79,6 +82,7 @@ end
 
 require "ssh_data/public_key/base"
 require "ssh_data/public_key/security_key"
+require "ssh_data/public_key/dilithium"
 require "ssh_data/public_key/rsa"
 require "ssh_data/public_key/dsa"
 require "ssh_data/public_key/ecdsa"
