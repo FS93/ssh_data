@@ -50,6 +50,8 @@ module SSHData
     def self.from_data(data)
       data[:private_keys].map do |priv|
         case priv[:algo]
+        when PublicKey::ALGO_DILITHIUM
+          DILITHIUM.new(**priv)
         when PublicKey::ALGO_RSA
           RSA.new(**priv)
         when PublicKey::ALGO_DSA
@@ -67,6 +69,7 @@ module SSHData
 end
 
 require "ssh_data/private_key/base"
+require "ssh_data/private_key/dilithium"
 require "ssh_data/private_key/rsa"
 require "ssh_data/private_key/dsa"
 require "ssh_data/private_key/ecdsa"
