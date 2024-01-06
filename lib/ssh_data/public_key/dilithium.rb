@@ -3,7 +3,7 @@ module SSHData
     class DILITHIUM < Base
       require 'roqs'
 
-      attr_reader :public_key_pointer, :public_key_int8_array, :liboqs
+      attr_reader :public_key_pointer, :liboqs
       def initialize(algo:, public_key_pointer:)
         unless algo == ALGO_DILITHIUM
           raise DecodeError, "bad algorithm: #{algo.inspect}"
@@ -11,10 +11,6 @@ module SSHData
 
         @algo = algo
         @public_key_pointer = public_key_pointer
-        @public_key_int8_array = []
-        (0..public_key_pointer.size).each { |i|
-          @public_key_int8_array[i] = public_key_pointer[i]
-        }
 
         @liboqs = Roqs::SIG.new(algo)
 
@@ -37,7 +33,7 @@ module SSHData
       #
       # Returns boolean.
       def ==(other)
-        super && other.public_key_pointer == public_key_pointer
+        super && other.public_key_pointer.to_str == public_key_pointer.to_str
       end
 
       # RFC4253 binary encoding of the public key.
@@ -45,7 +41,7 @@ module SSHData
       # Returns a binary String.
       def rfc4253
         Encoding.encode_fields(
-          [:int8_array, public_key_int8_array]
+          [:int8_array_pointer, public_key_pointer]
         )
       end
 
