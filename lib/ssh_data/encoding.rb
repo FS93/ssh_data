@@ -25,7 +25,7 @@ module SSHData
 
     # Fields in an Dilithium private key (key generation produces only a pointer to an integer array)
     DILITHIUM_PRIVATE_KEY_FIELDS = [
-      [:private_key_int8_array, :int8_array]
+      [:private_key_pointer, :int8_array_pointer]
     ]
 
     # Fields in an RSA private key
@@ -62,7 +62,7 @@ module SSHData
 
     # Fields in a Dilithium public key (key generation produces only a pointer to an integer array)
     DILITHIUM_KEY_FIELDS = [
-      [:public_key_int8_array, :int8_array]
+      [:public_key_pointer, :int8_array_pointer]
     ]
 
     # Fields in an RSA public key
@@ -429,6 +429,8 @@ module SSHData
           decode_string_public_key(raw, offset + total_read, *args)
         when :options
           decode_options(raw, offset + total_read, *args)
+        when :int8_array_pointer
+          decode_int8_array_pointer(raw, offset + total_read, *args)
         else
           raise DecodeError
         end
@@ -463,8 +465,8 @@ module SSHData
           encode_uint32(value)
         when :options
           encode_options(value)
-        when :int8_array
-          encode_int8_array(array)
+        when :int8_array_pointer
+          encode_int8_array_pointer(value)
         else
           raise DecodeError, "bad type: #{type}"
         end
@@ -750,13 +752,25 @@ module SSHData
       [value].pack("C")
     end
 
-    # Encoding an array of Integer in range [-128..127] as array of int8 (signed 8-Bit integer)
+    # Encoding a pointer to an array of Integer in range [-128..127] as binary string.
     #
-    # array - The Array of Integer to encode.
+    # pointer - The pointer to the array of Integers to encode.
     #
-    # Returns an array of the encoded representations of the integers.
-    def encode_int8_array(array)
-      array.pack("c*")
+    # Returns a binary string.
+    def encode_int8_array_pointer(pointer)
+      pointer.to_str
+    end
+
+    # Read a pointer to an array of int8 (range [-128,127]) from the provided raw binary string.
+    #
+    # raw - A binary string.
+    #
+    # Returns an Array including a pointer to an array of int8 values and the size of the pointer.
+    def decode_int8_array_pointer(raw, offset=0)
+      pointer = Fiddle::Pointer.malloc(raw.size, Fiddle::RUBY_FREE)
+      pointer[0, raw.size] = raw
+
+      [pointer, pointer.size]
     end
 
     extend self
