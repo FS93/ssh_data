@@ -25,6 +25,7 @@ module SSHData
 
     # Fields in an Dilithium private key (key generation produces only a pointer to an integer array)
     DILITHIUM_PRIVATE_KEY_FIELDS = [
+      [:public_key_pointer,  :int8_array_pointer],
       [:private_key_pointer, :int8_array_pointer]
     ]
 
