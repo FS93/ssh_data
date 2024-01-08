@@ -53,11 +53,19 @@ module SSHData
         Encoding.encode_signature(algo, raw_sig)
       end
 
-      # Frees the public_key_pointer and private_key_pointer.
+      # Overwrites content of public_key_pointer and private_key_pointer with zeroes, afterwards frees them
+      # and the liboqs pointer.
       # Should be executed as soon as the keypair is not needed anymore.
       def cleanup
-        liboqs.free(public_key_pointer)
-        liboqs.free(private_key_pointer)
+        # Overwrite with zeroes
+        public_key_pointer[0,public_key_pointer.size] = Array.new(public_key_pointer.size, 0).pack("c*")
+        private_key_pointer[0,private_key_pointer.size] = Array.new(private_key_pointer.size, 0).pack("c*")
+
+        # Free key pointer
+        public_key_pointer.call_free
+        private_key_pointer.call_free
+
+        # Free liboqs pointer
         liboqs.cleanup
       end
 
