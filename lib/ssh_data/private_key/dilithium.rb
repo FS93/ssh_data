@@ -9,7 +9,7 @@ module SSHData
       #
       # Returns a PublicKey::Base subclass instance.
       def self.generate
-        from_liboqs(Roqs::SIG.new('dilithium5').genkeypair)
+        from_liboqs(Roqs::SIG.new(PublicKey::LIBOQS_ALGO_NAMES[PublicKey::ALGO_DILITHIUM]).genkeypair)
       end
 
       # Import a liboqs Dilithium keypair
@@ -17,7 +17,7 @@ module SSHData
       # keypair - An Array containing public_key_pointer and private_key_pointer, both instances of Fiddle::Pointer
       #
       # Returns a DILITHIUM instance.
-      def from_liboqs(keypair)
+      def self.from_liboqs(keypair)
         new(
           algo: PublicKey::ALGO_DILITHIUM,
           public_key_pointer: keypair[0],
@@ -33,7 +33,7 @@ module SSHData
 
         super(algo: algo, comment: comment)
 
-        @liboqs = Roqs::SIG.new(algo)
+        @liboqs = Roqs::SIG.new(PublicKey::LIBOQS_ALGO_NAMES[algo])
 
         @public_key_pointer = public_key_pointer
         @private_key_pointer = private_key_pointer
