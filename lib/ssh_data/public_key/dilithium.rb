@@ -12,7 +12,7 @@ module SSHData
         @algo = algo
         @public_key_pointer = public_key_pointer
 
-        @liboqs = Roqs::SIG.new(algo)
+        @liboqs = Roqs::SIG.new(PublicKey::LIBOQS_ALGO_NAMES[algo])
 
         super(algo: algo)
       end
@@ -24,7 +24,13 @@ module SSHData
       #
       # Returns boolean.
       def verify(signed_data, signature)
-        liboqs.verify(signed_data, signature, public_key_pointer)
+        sig_algo, raw_sig, _ = Encoding.decode_signature(signature)
+
+        if sig_algo != ALGO_DILITHIUM
+          raise DecodeError, "bas signature algorithm: #{sig_algo.inspect}"
+        end
+
+        liboqs.verify(signed_data, raw_sig, public_key_pointer)
       end
 
       # Is this public key equal to another public key?
