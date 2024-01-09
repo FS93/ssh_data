@@ -1,7 +1,13 @@
 module SSHData
   module PrivateKey
     class DILITHIUM < Base
+      # roqs logs debug messages to STDOUT - temporarily redirect STDOUT to /dev/null
+      original_stdout = $stdout.dup
+      $stdout.reopen('/dev/null', 'w')
+      $stdout.sync = true
       require 'roqs'
+      $stdout.reopen(original_stdout)
+
 
       attr_reader :public_key_pointer, :private_key_pointer, :liboqs
 
