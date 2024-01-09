@@ -12,6 +12,7 @@ module SSHData
     TYPE_HOST = 2
 
     # Certificate algorithm identifiers
+    ALGO_DILITHIUM  = "ssh-dilithium5" # following the OQS-OpenSSH fork (https://github.com/open-quantum-safe/openssh/blob/OQS-v8/sshkey.c#L235)
     ALGO_RSA        = "ssh-rsa-cert-v01@openssh.com"
     ALGO_DSA        = "ssh-dss-cert-v01@openssh.com"
     ALGO_ECDSA256   = "ecdsa-sha2-nistp256-cert-v01@openssh.com"
@@ -22,7 +23,7 @@ module SSHData
     ALGO_SKED25519  = "sk-ssh-ed25519-cert-v01@openssh.com"
 
     ALGOS = [
-      ALGO_RSA, ALGO_DSA, ALGO_ECDSA256, ALGO_ECDSA384, ALGO_ECDSA521,
+      ALGO_DILITHIUM, ALGO_RSA, ALGO_DSA, ALGO_ECDSA256, ALGO_ECDSA384, ALGO_ECDSA521,
       ALGO_ED25519, ALGO_SKECDSA256, ALGO_SKED25519
     ]
 
@@ -81,7 +82,7 @@ module SSHData
 
     # Intialize a new Certificate instance.
     #
-    # algo:             - The certificate's String algorithm id (one of ALGO_RSA,
+    # algo:             - The certificate's String algorithm id (one of ALGO_DILITHIUM, ALGO_RSA,
     #                     ALGO_DSA, ALGO_ECDSA256, ALGO_ECDSA384, ALGO_ECDSA521,
     #                     or ALGO_ED25519)
     # nonce:            - The certificate's String nonce field.
