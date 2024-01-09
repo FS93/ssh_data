@@ -759,7 +759,7 @@ module SSHData
     #
     # Returns a binary string.
     def encode_int8_array_pointer(pointer)
-      pointer.to_str
+      [pointer.size].pack("L>") + pointer.to_str
     end
 
     # Read a pointer to an array of int8 (range [-128,127]) from the provided raw binary string.
