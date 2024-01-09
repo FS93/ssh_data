@@ -763,15 +763,23 @@ module SSHData
     end
 
     # Read a pointer to an array of int8 (range [-128,127]) from the provided raw binary string.
+    # The first 4 byte contain the number of bytes to follow as big endian integer.
     #
     # raw - A binary string.
     #
     # Returns an Array including a pointer to an array of int8 values and the size of the pointer.
     def decode_int8_array_pointer(raw, offset=0)
-      pointer = Fiddle::Pointer.malloc(raw.size, Fiddle::RUBY_FREE)
-      pointer[0, raw.size] = raw
+      if raw.bytesize < offset + 4
+        raise DecodeError, "data too short"
+      end
 
-      [pointer, pointer.size]
+      size_s = raw.byteslice(offset, 4)
+      size = size_s.unpack("L>").first
+
+      pointer = Fiddle::Pointer.malloc(size, Fiddle::RUBY_FREE)
+      pointer[0, size] = raw.byteslice(offset + 4, size)
+
+      [pointer, pointer.size + 4]
     end
 
     extend self
