@@ -1,10 +1,21 @@
 require "ssh_data"
 require "ed25519"
+
+# roqs logs debug messages to STDOUT - temporarily redirect STDOUT to /dev/null
+original_stdout = $stdout.dup
+$stdout.reopen('/dev/null', 'w')
+$stdout.sync = true
+require 'roqs'
+$stdout.reopen(original_stdout)
+
 require "rspec-parameterized"
 
 RSpec.configure do |config|
-  config.color_mode = :off
+  # config.color_mode = :off
+  # TODO remove the filter for test cases with 'focus' tag
+  config.filter_run focus: true
 end
+# foo
 
 REPO_PATH    = File.expand_path(File.join(__FILE__, "..", ".."))
 FIXTURE_PATH = File.expand_path(File.join(REPO_PATH, "spec", "fixtures"))
