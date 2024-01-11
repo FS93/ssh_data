@@ -52,6 +52,7 @@ module SSHData
       # Returns a binary String.
       def rfc4253
         Encoding.encode_fields(
+          [:string, algo],
           [:int8_array_pointer, public_key_pointer]
         )
       end
