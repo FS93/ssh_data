@@ -60,27 +60,44 @@ provided using the [`roqs` Gem](https://rubygems.org/gems/roqs) that itself wrap
 
 As binary formats for public / private keys and signatures have not yet been standardized, consistency with
 the [OQS-OpenSSH](https://openquantumsafe.org/applications/ssh.html#oqs-openssh) fork has been seeked:
-public keys (typically `id_dilithium5.pub`) and private keys (typically `id_dilithium5`) generated with 
+public keys (typically `id_dilithium5.pub`) and (unencrypted) private keys (typically `id_dilithium5`) generated with 
 
 ```bash
 ssh-keygen -t ssh-dilithium5 -f ~/.ssh/id_dilithium5
 ``` 
 (see [here](https://github.com/open-quantum-safe/openssh#generating-quantum-safe-authentication-keys))
-can be parsed.
+can be parsed (and generated).
 
 
 ```ruby
 require "ssh_data"
 
+# Parsing keys & certificates
+ 
 key_data = File.read("~/.ssh/id_dilithium5")
+cert_data = File.read(/path/to/openssh/cert)
+
 private_key = SSHData::PrivateKey.parse_openssh(key_data).first
-#=> <SSHData::PrivateKey::Dilithium>
+
 public_key = private_key.public_key
+
+cert = SSHData::Certificate.parse_openssh(cert_data)
+
+# Generating keys & certificates
+
+private_key_generated = SSHData::PrivateKey::DILITHIUM.generate
+
+public_key_generated = private_key_generated.public_key
+
+cert_generated = private_key_generated.issue_certificate(
+  public_key: public_key,
+  key_id: "my-ident"
+)
+
+# Signing
 
 m = "message"
 
-# Signing
- 
 sig = private_key.sign(m)
 #=> Signature binary string
 
@@ -98,6 +115,16 @@ public_key.verify("some other string", sig)
 private_key.cleanup
 
 ```
+
+### Testing Dilithium support
+
+A built [OQS-OpenSSH](https://openquantumsafe.org/applications/ssh.html#oqs-openssh) is needed to generate fixtures for Dilithium key pairs, 
+certificates and signatures and also to run the `rspec` tests.
+
+To generate the fixtures, run the `gen.sh` and `create-signatures.sh` scripts. Both will
+prompt for the location of OQS-OpenSSH.
+
+Before running the `rspec` tests with `bundle exec rspec`, specify the `OQS_OPENSSH_SSHKEYGEN_PATH` in `spec_helper.rb`.
 
 ## Contributions
 
