@@ -52,6 +52,7 @@ then
 	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_dsa_ca
 	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_ecdsa_ca
 	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_ed25519_ca
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_dilithium5_ca
 fi
 
 if [[ $generate_security_keys -eq 1 ]]
