@@ -97,10 +97,11 @@ describe SSHData::Encoding do
   end
 
   describe "#decode_openssh_private_key" do
-    let(:rsa_data)     { described_class.decode_openssh_private_key(fixture("rsa_leaf_for_rsa_ca",     binary: true, pem: true)).first }
-    let(:dsa_data)     { described_class.decode_openssh_private_key(fixture("dsa_leaf_for_rsa_ca",     binary: true, pem: true)).first }
-    let(:ecdsa_data)   { described_class.decode_openssh_private_key(fixture("ecdsa_leaf_for_rsa_ca",   binary: true, pem: true)).first }
-    let(:ed25519_data) { described_class.decode_openssh_private_key(fixture("ed25519_leaf_for_rsa_ca", binary: true, pem: true)).first }
+    let(:rsa_data)        { described_class.decode_openssh_private_key(fixture("rsa_leaf_for_rsa_ca",     binary: true, pem: true)).first }
+    let(:dsa_data)        { described_class.decode_openssh_private_key(fixture("dsa_leaf_for_rsa_ca",     binary: true, pem: true)).first }
+    let(:ecdsa_data)      { described_class.decode_openssh_private_key(fixture("ecdsa_leaf_for_rsa_ca",   binary: true, pem: true)).first }
+    let(:ed25519_data)    { described_class.decode_openssh_private_key(fixture("ed25519_leaf_for_rsa_ca", binary: true, pem: true)).first }
+    let(:dilithium5_data) { described_class.decode_openssh_private_key(fixture("dilithium5_leaf_for_rsa_ca", binary: true, pem: true)).first }
 
     it "can decode rsa" do
       expect { rsa_data }.not_to raise_error
@@ -194,6 +195,29 @@ describe SSHData::Encoding do
       expect(ed25519_data[:padding]).to eq("\x01\x02\x03\x04\x05\x06\07")
     end
 
+    it "can decode dilithium5" do
+      expect { dilithium5_data }.not_to raise_error
+      expect(dilithium5_data[:ciphername]).to eq("none")
+      expect(dilithium5_data[:kdfname]).to eq("none")
+      expect(dilithium5_data[:kdfoptions]).to eq("")
+      expect(dilithium5_data[:nkeys]).to eq(1)
+
+      expect(dilithium5_data[:public_keys]).to be_a(Array)
+      expect(dilithium5_data[:public_keys].length).to eq(1)
+      expect {
+        SSHData::PublicKey.parse_rfc4253(dilithium5_data[:public_keys].first)
+      }.not_to raise_error
+
+      expect(dilithium5_data[:checkint1]).to be_a(Integer)
+      expect(dilithium5_data[:checkint2]).to be_a(Integer)
+      expect(dilithium5_data[:checkint1]).to eq(dilithium5_data[:checkint2])
+
+      expect(dilithium5_data[:private_keys]).to be_a(Array)
+      expect(dilithium5_data[:private_keys].length).to eq(1)
+
+      expect(dilithium5_data[:padding]).to eq("\x01\x02\x03")
+    end
+
     it "raises on bad magic bytes" do
       raw = fixture("rsa_leaf_for_rsa_ca", binary: true, pem: true)
 
@@ -265,6 +289,7 @@ describe SSHData::Encoding do
     let(:dsa_data)     { described_class.decode_public_key(fixture("dsa_leaf_for_rsa_ca.pub",     binary: true)).first }
     let(:ecdsa_data)   { described_class.decode_public_key(fixture("ecdsa_leaf_for_rsa_ca.pub",   binary: true)).first }
     let(:ed25519_data) { described_class.decode_public_key(fixture("ed25519_leaf_for_rsa_ca.pub", binary: true)).first }
+    let(:dilithium5_data) { described_class.decode_public_key(fixture("dilithium5_leaf_for_rsa_ca.pub", binary: true)).first }
 
     it "raises on unknown public key algorithms" do
       raw = fixture("rsa_leaf_for_rsa_ca.pub", binary: true)
@@ -319,6 +344,11 @@ describe SSHData::Encoding do
       expect(ed25519_data[:algo]).to eq(SSHData::PublicKey::ALGO_ED25519)
       expect(ed25519_data[:pk]).to be_a(String)
     end
+
+    it "can decode an Dilithium public key" do
+      expect(dilithium5_data[:algo]).to eq(SSHData::PublicKey::ALGO_DILITHIUM)
+      expect(dilithium5_data[:public_key_pointer]).to be_a(Fiddle::Pointer)
+    end
   end
 
   describe("#decode_string_public_key") do
@@ -333,15 +363,17 @@ describe SSHData::Encoding do
   end
 
   describe("#decode_certificate") do
-    let(:rsa_data)     { described_class.decode_certificate(fixture("rsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
-    let(:dsa_data)     { described_class.decode_certificate(fixture("dsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
-    let(:ecdsa_data)   { described_class.decode_certificate(fixture("ecdsa_leaf_for_rsa_ca-cert.pub",   binary: true)).first }
-    let(:ed25519_data) { described_class.decode_certificate(fixture("ed25519_leaf_for_rsa_ca-cert.pub", binary: true)).first }
+    let(:rsa_data)        { described_class.decode_certificate(fixture("rsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
+    let(:dsa_data)        { described_class.decode_certificate(fixture("dsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
+    let(:ecdsa_data)      { described_class.decode_certificate(fixture("ecdsa_leaf_for_rsa_ca-cert.pub",   binary: true)).first }
+    let(:ed25519_data)    { described_class.decode_certificate(fixture("ed25519_leaf_for_rsa_ca-cert.pub", binary: true)).first }
+    let(:dilithium5_data) { described_class.decode_certificate(fixture("dilithium5_leaf_for_rsa_ca-cert.pub", binary: true)).first }
 
-    let(:rsa_ca_data)     { described_class.decode_certificate(fixture("rsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
-    let(:dsa_ca_data)     { described_class.decode_certificate(fixture("rsa_leaf_for_dsa_ca-cert.pub",     binary: true)).first }
-    let(:ecdsa_ca_data)   { described_class.decode_certificate(fixture("rsa_leaf_for_ecdsa_ca-cert.pub",   binary: true)).first }
-    let(:ed25519_ca_data) { described_class.decode_certificate(fixture("rsa_leaf_for_ed25519_ca-cert.pub", binary: true)).first }
+    let(:rsa_ca_data)        { described_class.decode_certificate(fixture("rsa_leaf_for_rsa_ca-cert.pub",     binary: true)).first }
+    let(:dsa_ca_data)        { described_class.decode_certificate(fixture("rsa_leaf_for_dsa_ca-cert.pub",     binary: true)).first }
+    let(:ecdsa_ca_data)      { described_class.decode_certificate(fixture("rsa_leaf_for_ecdsa_ca-cert.pub",   binary: true)).first }
+    let(:ed25519_ca_data)    { described_class.decode_certificate(fixture("rsa_leaf_for_ed25519_ca-cert.pub", binary: true)).first }
+    let(:dilithium5_ca_data) { described_class.decode_certificate(fixture("rsa_leaf_for_dilithium5_ca-cert.pub", binary: true)).first }
 
     it "raises on unknown certificate algorithms" do
       raw = fixture("rsa_leaf_for_rsa_ca-cert.pub", binary: true)
@@ -469,6 +501,31 @@ describe SSHData::Encoding do
       expect(ed25519_data[:signature].bytesize).to eq(271)
     end
 
+    it "can decode Dilithium certificates" do
+      expect(dilithium5_data[:algo]).to eq(SSHData::Certificate::ALGO_DILITHIUM)
+
+      expect(dilithium5_data[:nonce]).to be_a(String)
+      expect(dilithium5_data[:nonce].length).to eq(32)
+
+      expect(dilithium5_data[:public_key][:algo]).to eq(SSHData::PublicKey::ALGO_DILITHIUM)
+      expect(dilithium5_data[:public_key][:public_key_pointer]).to be_a(Fiddle::Pointer)
+
+      expect(dilithium5_data[:serial]).to eq(123)
+      expect(dilithium5_data[:type]).to eq(SSHData::Certificate::TYPE_USER)
+      expect(dilithium5_data[:key_id]).to eq("my-ident")
+      expect(dilithium5_data[:valid_principals]).to eq(["p1", "p2"])
+      expect(dilithium5_data[:valid_after]).to eq(SSHData::Certificate::BEGINNING_OF_TIME)
+      expect(dilithium5_data[:valid_before]).to eq(SSHData::Certificate::END_OF_TIME)
+      expect(dilithium5_data[:critical_options]).to eq({"foo"=>"bar"})
+      expect(dilithium5_data[:extensions]).to eq({"permit-X11-forwarding"=>true, "baz"=>"qwer"})
+      expect(dilithium5_data[:reserved]).to eq("")
+
+      expect(dilithium5_data[:signature_key]).to be_a(Hash)
+
+      expect(dilithium5_data[:signature]).to be_a(String)
+      expect(dilithium5_data[:signature].bytesize).to eq(271)
+    end
+
     it "can decode certs from RSA CAs" do
       expect(rsa_ca_data[:algo]).to eq(SSHData::Certificate::ALGO_RSA)
 
@@ -566,6 +623,33 @@ describe SSHData::Encoding do
       expect(ed25519_ca_data[:signature_key]).to be_a(Hash)
       expect(ed25519_ca_data[:signature]).to be_a(String)
     end
+
+    it "can decode certs from Dilithium CAs" do
+      expect(dilithium5_ca_data[:algo]).to eq(SSHData::Certificate::ALGO_RSA)
+
+      expect(dilithium5_ca_data[:nonce]).to be_a(String)
+      expect(dilithium5_ca_data[:nonce].length).to eq(32)
+
+      expect(dilithium5_ca_data[:public_key][:algo]).to eq(SSHData::PublicKey::ALGO_RSA)
+      expect(ed25519_ca_data[:public_key][:e]).to be_a(OpenSSL::BN)
+      expect(ed25519_ca_data[:public_key][:n]).to be_a(OpenSSL::BN)
+
+      expect(dilithium5_ca_data[:serial]).to eq(123)
+      expect(dilithium5_ca_data[:type]).to eq(SSHData::Certificate::TYPE_USER)
+      expect(dilithium5_ca_data[:key_id]).to eq("my-ident")
+      expect(dilithium5_ca_data[:valid_principals]).to eq(["p1", "p2"])
+      expect(dilithium5_ca_data[:valid_after]).to eq(SSHData::Certificate::BEGINNING_OF_TIME)
+      expect(dilithium5_ca_data[:valid_before]).to eq(SSHData::Certificate::END_OF_TIME)
+      expect(dilithium5_ca_data[:critical_options]).to eq({"foo"=>"bar"})
+      expect(dilithium5_ca_data[:extensions]).to eq({"permit-X11-forwarding"=>true, "baz"=>"qwer"})
+      expect(dilithium5_ca_data[:reserved]).to eq("")
+
+      expect(dilithium5_ca_data[:signature_key]).to be_a(Hash)
+
+      expect(dilithium5_ca_data[:signature]).to be_a(String)
+      expect(dilithium5_ca_data[:signature].bytesize).to eq(4617)
+    end
+
   end
 
   describe("strings") do
@@ -745,6 +829,48 @@ describe SSHData::Encoding do
     it "can encode" do
       encoded2 = described_class.encode_uint32(raw)
       expect(encoded2).to eq(encoded)
+    end
+  end
+
+  describe("int8_array_pointer") do
+    test_cases = []
+
+    test_cases << [
+      :empty,                                                                        # name
+      Fiddle::Pointer.malloc(0, Fiddle::RUBY_FREE),                                  # raw
+      String.new("\x00\x00\x00\x00", encoding: Encoding::ASCII_8BIT)                 # encoded
+    ]
+
+    test_cases << [
+      :zeroes,                                                                       # name
+      Fiddle::Pointer.malloc(2592, Fiddle::RUBY_FREE),                               # raw
+      String.new("\x00\x00\n " + "\x00" * 2592 , encoding: Encoding::ASCII_8BIT) # encoded
+    ]
+
+    test_cases << [
+      :binarystring,                                                                   # name
+      Fiddle::Pointer["\x00\x01\x02"],                               # raw
+      String.new("\x00\x00\x00\x03" + "\x00\x01\x02" , encoding: Encoding::ASCII_8BIT) # encoded
+    ]
+    test_cases.each do |name, raw, encoded|
+      describe("#{name} values") do
+        it "can decode" do
+          raw2, read = described_class.decode_int8_array_pointer(encoded + junk)
+          expect(raw2.to_str).to eq(raw.to_str)
+          expect(read).to eq(encoded.bytesize)
+        end
+
+        it "can decode at an offset" do
+          raw2, read = described_class.decode_int8_array_pointer(junk + encoded + junk, junk.bytesize)
+          expect(raw2.to_str).to eq(raw.to_str)
+          expect(read).to eq(encoded.bytesize)
+        end
+
+        it "can encode" do
+          encoded2 = described_class.encode_int8_array_pointer(raw)
+          expect(encoded2).to eq(encoded)
+        end
+      end
     end
   end
 
