@@ -1,5 +1,18 @@
 #!/bin/bash
 
+generate_dilithium_keys=0
+read -p "Generate Dilithium keys with the OQS-OpenSSH fork? [yN]" -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+	generate_dilithium_keys=1
+	read -p "Path to OQS-OpenSSH root directory: " oqs_openssh_path
+	oqs_ssh_keygen=$oqs_openssh_path"/ssh-keygen"
+	function ssh-keygen-oqs {
+	  "$oqs_ssh_keygen" "$@"
+	}
+fi
+
 generate_security_keys=0
 read -p "Generate security key-backed keys (Requires key and user interaction)? [yN] " -n 1 -r
 echo
@@ -14,6 +27,32 @@ ssh-keygen -trsa -N "" -f ./rsa_ca
 ssh-keygen -tdsa -N "" -f ./dsa_ca
 ssh-keygen -tecdsa -N "" -f ./ecdsa_ca
 ssh-keygen -ted25519 -N "" -f ./ed25519_ca
+
+if [[ $generate_dilithium_keys -eq 1 ]]
+then
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_ca
+
+  # sign every certificate type with a Dilitium CA key
+	ssh-keygen -trsa -N "" -C someone@machine -f ./rsa_leaf_for_dilithium5_ca
+	ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding rsa_leaf_for_dilithium5_ca.pub
+
+	ssh-keygen -tdsa -N "" -C someone@machine -f ./dsa_leaf_for_dilithium5_ca
+	ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding dsa_leaf_for_dilithium5_ca.pub
+
+	ssh-keygen -tecdsa -N "" -C someone@machine -f ./ecdsa_leaf_for_dilithium5_ca
+	ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding ecdsa_leaf_for_dilithium5_ca.pub
+
+	ssh-keygen -ted25519 -N "" -C someone@machine -f ./ed25519_leaf_for_dilithium5_ca
+	ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding ed25519_leaf_for_dilithium5_ca.pub
+
+  # generate Dilitium key pairs to be packed in certificates
+  # since OQS-OpenSSHv8.9 does not yet support the creation / parsing of certificates containing Dilithium public keys,
+  # the certificate creation is done with ssh_data in certification_spec.rb, so that the parsing & signature verification can be tested
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_rsa_ca
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_dsa_ca
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_ecdsa_ca
+	ssh-keygen-oqs -tssh-dilithium5 -N "" -C someone@machine -f ./dilithium5_leaf_for_ed25519_ca
+fi
 
 if [[ $generate_security_keys -eq 1 ]]
 then
@@ -56,6 +95,15 @@ ssh-keygen -s rsa_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O
 
 if [[ $generate_security_keys -eq 1 ]]
 then
+    if [[ $generate_dilithium_keys -eq 1 ]]
+    then # sign certificates including Security Keys with Dilithium
+      ssh-keygen -t ed25519-sk  -N "" -C someone@machine -f ./sked25519_leaf_for_dilithium5_ca
+	    ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding sked25519_leaf_for_dilithium5_ca.pub
+
+      ssh-keygen -t ecdsa-sk  -N "" -C someone@machine -f ./skecdsa_leaf_for_dilithium5_ca
+	    ssh-keygen-oqs -s dilithium5_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding skecdsa_leaf_for_dilithium5_ca.pub
+    fi
+
     ssh-keygen -t ed25519-sk  -N "" -f ./sked25519_leaf_for_rsa_ca
     ssh-keygen -s rsa_ca -z 123 -n p1,p2 -O clear -I my-ident -O critical:foo=bar -O extension:baz=qwer -O permit-X11-forwarding sked25519_leaf_for_rsa_ca.pub
 
