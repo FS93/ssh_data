@@ -1,10 +1,54 @@
 require_relative "./spec_helper"
 
 describe SSHData::Certificate do
-  let(:rsa_ca)     { SSHData::PrivateKey::RSA.generate(2048) }
-  let(:dsa_ca)     { SSHData::PrivateKey::DSA.generate }
-  let(:ecdsa_ca)   { SSHData::PrivateKey::ECDSA.generate("nistp256") }
-  let(:ed25519_ca) { SSHData::PrivateKey::ED25519.generate }
+  let(:rsa_ca)       { SSHData::PrivateKey::RSA.generate(2048) }
+  let(:dsa_ca)       { SSHData::PrivateKey::DSA.generate }
+  let(:ecdsa_ca)     { SSHData::PrivateKey::ECDSA.generate("nistp256") }
+  let(:ed25519_ca)   { SSHData::PrivateKey::ED25519.generate }
+  let(:dilithium5_ca){ SSHData::PrivateKey::DILITHIUM.generate }
+
+  before(:context) do
+    parameters = {
+      key_id: "my-ident",
+      serial: 123,
+      valid_principals: ["p1", "p2"],
+      critical_options: {"foo" => "bar"},
+      extensions: {"permit-X11-forwarding" => true, "baz" => "qwer"}
+    }
+
+    dilithium_rsa_pub = SSHData::PublicKey.parse_openssh(File.read(File.join(FIXTURE_PATH, "dilithium5_leaf_for_rsa_ca.pub")))
+    dilithium_dsa_pub = SSHData::PublicKey.parse_openssh(File.read(File.join(FIXTURE_PATH, "dilithium5_leaf_for_dsa_ca.pub")))
+    dilithium_ecdsa_pub = SSHData::PublicKey.parse_openssh(File.read(File.join(FIXTURE_PATH, "dilithium5_leaf_for_ecdsa_ca.pub")))
+    dilithium_ed25519_pub = SSHData::PublicKey.parse_openssh(File.read(File.join(FIXTURE_PATH, "dilithium5_leaf_for_ed25519_ca.pub")))
+    dilithium_dilithium_pub = SSHData::PublicKey.parse_openssh(File.read(File.join(FIXTURE_PATH, "dilithium5_leaf_for_dilithium5_ca.pub")))
+
+    dilithium_rsa_cert = SSHData::PrivateKey::RSA.generate(2048).issue_certificate(public_key: dilithium_rsa_pub, **parameters).openssh(comment: "someone@machine")
+    dilithium_dsa_cert = SSHData::PrivateKey::DSA.generate.issue_certificate(public_key: dilithium_dsa_pub, **parameters).openssh(comment: "someone@machine")
+    dilithium_ecdsa_cert = SSHData::PrivateKey::ECDSA.generate("nistp256").issue_certificate(public_key: dilithium_ecdsa_pub, **parameters).openssh(comment: "someone@machine")
+    dilithium_ed25519_cert = SSHData::PrivateKey::ED25519.generate.issue_certificate(public_key: dilithium_ed25519_pub, **parameters).openssh(comment: "someone@machine")
+    dilithium_dilithium_cert = SSHData::PrivateKey::DILITHIUM.generate.issue_certificate(public_key: dilithium_dilithium_pub, **parameters).openssh(comment: "someone@machine")
+
+    File.open(File.join(FIXTURE_PATH, 'dilithium5_leaf_for_rsa_ca-cert.pub'), 'w') do |file|
+      file.write(dilithium_rsa_cert)
+    end
+
+    File.open(File.join(FIXTURE_PATH, 'dilithium5_leaf_for_dsa_ca-cert.pub'), 'w') do |file|
+      file.write(dilithium_dsa_cert)
+    end
+
+    File.open(File.join(FIXTURE_PATH, 'dilithium5_leaf_for_ecdsa_ca-cert.pub'), 'w') do |file|
+      file.write(dilithium_ecdsa_cert)
+    end
+
+    File.open(File.join(FIXTURE_PATH,'dilithium5_leaf_for_ed25519_ca-cert.pub'), 'w') do |file|
+      file.write(dilithium_ed25519_cert)
+    end
+
+    File.open(File.join(FIXTURE_PATH,'dilithium5_leaf_for_dilithium5_ca-cert.pub'), 'w') do |file|
+      file.write(dilithium_dilithium_cert)
+    end
+
+  end
 
   it "supports the deprecated Certificate.parse method" do
     expect {
@@ -297,6 +341,78 @@ describe SSHData::Certificate do
     SSHData::PublicKey::SKED25519           # ca key type
   ]
 
+  test_cases << [
+    :dilithium5_leaf_for_rsa_ca,            # name
+    "dilithium5_leaf_for_rsa_ca-cert.pub",  # fixture
+    SSHData::Certificate::ALGO_DILITHIUM,   # algo
+    SSHData::PublicKey::DILITHIUM,          # public key type
+    SSHData::PublicKey::RSA                 # ca key type
+  ]
+
+  test_cases << [
+    :dilithium5_leaf_for_dsa_ca,            # name
+    "dilithium5_leaf_for_dsa_ca-cert.pub",  # fixture
+    SSHData::Certificate::ALGO_DILITHIUM,   # algo
+    SSHData::PublicKey::DILITHIUM,          # public key type
+    SSHData::PublicKey::DSA                 # ca key type
+  ]
+
+  test_cases << [
+    :dilithium5_leaf_for_ecdsa_ca,          # name
+    "dilithium5_leaf_for_ecdsa_ca-cert.pub",# fixture
+    SSHData::Certificate::ALGO_DILITHIUM,   # algo
+    SSHData::PublicKey::DILITHIUM,          # public key type
+    SSHData::PublicKey::ECDSA               # ca key type
+  ]
+
+  test_cases << [
+    :dilithium5_leaf_for_ed25519_ca,        # name
+    "dilithium5_leaf_for_ed25519_ca-cert.pub",  # fixture
+    SSHData::Certificate::ALGO_DILITHIUM,   # algo
+    SSHData::PublicKey::DILITHIUM,          # public key type
+    SSHData::PublicKey::ED25519             # ca key type
+  ]
+
+  test_cases << [
+    :dilithium5_leaf_for_dilithium5_ca,     # name
+    "dilithium5_leaf_for_dilithium5_ca-cert.pub",  # fixture
+    SSHData::Certificate::ALGO_DILITHIUM,   # algo
+    SSHData::PublicKey::DILITHIUM,          # public key type
+    SSHData::PublicKey::DILITHIUM           # ca key type
+  ]
+
+  test_cases << [
+    :rsa_leaf_for_dilithium5_ca,           # name
+    "rsa_leaf_for_dilithium5_ca-cert.pub", # fixture
+    SSHData::Certificate::ALGO_RSA,        # algo
+    SSHData::PublicKey::RSA,               # public key type
+    SSHData::PublicKey::DILITHIUM          # ca key type
+  ]
+
+  test_cases << [
+    :dsa_leaf_for_dilithium5_ca,           # name
+    "dsa_leaf_for_dilithium5_ca-cert.pub", # fixture
+    SSHData::Certificate::ALGO_DSA,        # algo
+    SSHData::PublicKey::DSA,               # public key type
+    SSHData::PublicKey::DILITHIUM          # ca key type
+  ]
+
+  test_cases << [
+    :ecdsa_leaf_for_dilithium5_ca,           # name
+    "ecdsa_leaf_for_dilithium5_ca-cert.pub", # fixture
+    SSHData::Certificate::ALGO_ECDSA256,     # algo
+    SSHData::PublicKey::ECDSA,               # public key type
+    SSHData::PublicKey::DILITHIUM            # ca key type
+  ]
+
+  test_cases << [
+    :ed25519_leaf_for_dilithium5_ca,       # name
+    "ed25519_leaf_for_dilithium5_ca-cert.pub", # fixture
+    SSHData::Certificate::ALGO_ED25519,    # algo
+    SSHData::PublicKey::ED25519,           # public key type
+    SSHData::PublicKey::DILITHIUM          # ca key type
+  ]
+
   test_cases.each do |name, fixture_name, algo, public_key_class, ca_key_class|
     describe(name) do
       let(:openssh) { fixture(fixture_name).strip }
@@ -358,6 +474,11 @@ describe SSHData::Certificate do
 
       it "can be signed with an ED25519 key" do
         expect { subject.sign(ed25519_ca) }.to change {subject.signature}
+        expect(subject.verify).to eq(true)
+      end
+
+      it "can be signed with a Dilithium key" do
+        expect { subject.sign(dilithium5_ca) }.to change {subject.signature}
         expect(subject.verify).to eq(true)
       end
 

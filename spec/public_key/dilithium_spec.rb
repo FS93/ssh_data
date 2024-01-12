@@ -1,7 +1,5 @@
 require_relative '../spec_helper'
 
-# TODO remove 'focus' tag from test cases
-
 describe SSHData::PublicKey::DILITHIUM do
   let(:liboqs) {Roqs::SIG.new('dilithium5')}
   let(:keypair) {Roqs::SIG.new('dilithium5').genkeypair}
