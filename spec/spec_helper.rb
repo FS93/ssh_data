@@ -12,13 +12,13 @@ require "rspec-parameterized"
 
 RSpec.configure do |config|
   # config.color_mode = :off
-  # TODO remove the filter for test cases with 'focus' tag
-  config.filter_run focus: true
+  # config.filter_run focus: true
 end
 # foo
 
 REPO_PATH    = File.expand_path(File.join(__FILE__, "..", ".."))
 FIXTURE_PATH = File.expand_path(File.join(REPO_PATH, "spec", "fixtures"))
+OQS_OPENSSH_SSHKEYGEN_PATH = ""
 
 def fixture(name, binary: false, pem: false)
   data = File.read(File.join(FIXTURE_PATH, name))
@@ -31,8 +31,13 @@ def fixture(name, binary: false, pem: false)
   end
 end
 
-def ssh_keygen_fingerprint(name, algo, priv: false)
-  out = `ssh-keygen #{"-e" if priv} -E #{algo} -l -f #{File.join(FIXTURE_PATH, name)}`
+def ssh_keygen_fingerprint(name, algo, priv: false, oqs: false)
+  if oqs
+    ssh_keygen_path = OQS_OPENSSH_SSHKEYGEN_PATH
+  else
+    ssh_keygen_path = "ssh-keygen"
+  end
+  out = `#{ssh_keygen_path} #{"-e" if priv} -E #{algo} -l -f #{File.join(FIXTURE_PATH, name)}`
   out.split(":", 2).last.split(" ").first
 end
 

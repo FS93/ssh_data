@@ -5,8 +5,9 @@ describe SSHData::PrivateKey do
     name = File.basename(path)
 
     describe name do
-      let(:sha256_fpr) { ssh_keygen_fingerprint(name, :sha256, priv: true) }
-      let(:md5_fpr)    { ssh_keygen_fingerprint(name, :md5,    priv: true) }
+      oqs = name.include?("dilithium5")
+      let(:sha256_fpr) { ssh_keygen_fingerprint(name, :sha256, priv: true, oqs: oqs) }
+      let(:md5_fpr)    { ssh_keygen_fingerprint(name, :md5,    priv: true, oqs: oqs) }
 
       subject { described_class.parse(fixture(name)).first }
 

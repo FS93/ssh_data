@@ -17,11 +17,13 @@ describe SSHData::PublicKey do
       subject { described_class.parse_openssh(openssh) }
 
       it "generates a MD5 fingerprint matching ssh-keygen" do
-        expect(subject.fingerprint(md5: true)).to eq(ssh_keygen_fingerprint(name, :md5))
+        oqs = name.include?("dilithium5")
+        expect(subject.fingerprint(md5: true)).to eq(ssh_keygen_fingerprint(name, :md5, oqs: oqs))
       end
 
       it "generates a SHA256 fingerprint matching ssh-keygen" do
-        expect(subject.fingerprint).to eq(ssh_keygen_fingerprint(name, :sha256))
+        oqs = name.include?("dilithium5")
+        expect(subject.fingerprint).to eq(ssh_keygen_fingerprint(name, :sha256, oqs: oqs))
       end
 
       it "can re-encode back into authorized_keys format" do
