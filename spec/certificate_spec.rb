@@ -7,6 +7,8 @@ describe SSHData::Certificate do
   let(:ed25519_ca)   { SSHData::PrivateKey::ED25519.generate }
   let(:dilithium5_ca){ SSHData::PrivateKey::DILITHIUM.generate }
 
+  # OQS-OpenSSHv8.9 does not yet support the signing of certificates containing Dilitium public keys
+  # to still test the correct parsing and signature verification, ssh_data is used to generate the certificate fixtures
   before(:context) do
     parameters = {
       key_id: "my-ident",
