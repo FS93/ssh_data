@@ -23,15 +23,6 @@ module SSHData
         end
       end
 
-      # Make an SSH signature.
-      #
-      # signed_data - The String message over which to calculated the signature.
-      #
-      # Returns a binary String signature.
-      def sign(signed_data)
-        raise "implement me"
-      end
-
       # Verify an SSH signature.
       #
       # signed_data - The String message that the signature was calculated over.

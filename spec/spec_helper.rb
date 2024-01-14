@@ -11,10 +11,8 @@ $stdout.reopen(original_stdout)
 require "rspec-parameterized"
 
 RSpec.configure do |config|
-  # config.color_mode = :off
-  # config.filter_run focus: true
+  config.color_mode = :off
 end
-# foo
 
 REPO_PATH    = File.expand_path(File.join(__FILE__, "..", ".."))
 FIXTURE_PATH = File.expand_path(File.join(REPO_PATH, "spec", "fixtures"))

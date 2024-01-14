@@ -57,7 +57,7 @@ describe SSHData::PrivateKey::RSA do
     end
   end
 
-  it "raises when trying to sign with bad algo" do
+  it "raises when trying to issue a certificate with bad signature algo" do
     expect {
       subject.issue_certificate(
         public_key: cert_key,
@@ -67,7 +67,7 @@ describe SSHData::PrivateKey::RSA do
     }.to raise_error(SSHData::AlgorithmError)
   end
 
-  it "raises when trying to issue a certificate with bad signature algo" do
+  it "raises when trying to sign with bad algo" do
     expect {
       subject.sign(message, algo: SSHData::PublicKey::ALGO_DSA)
     }.to raise_error(SSHData::AlgorithmError)
