@@ -2,7 +2,7 @@
 
 This is a Ruby library for processing SSH keys and certificates.
 
-The scope of this project is limited to processing and directly using keys and certificates. It can be used to generate SSH private keys, verify signatures using public keys, sign data using private keys, issue certificates using private keys, and parse certificates and public and private keys. This library supports RSA, DSA, ECDSA, ED25519<sup>[*](#ed25519-support)</sup> and DILITHIUM-5<sup>[**](#dilithium-support) keys. This library does not offer or intend to offer functionality for SSH connectivity, processing of SSH wire protocol data, or processing of other key formats or types.
+The scope of this project is limited to processing and directly using keys and certificates. It can be used to generate SSH private keys, verify signatures using public keys, sign data using private keys, issue certificates using private keys, and parse certificates and public and private keys. This library supports RSA, DSA, ECDSA, ED25519<sup>[*](#ed25519-support)</sup> and DILITHIUM-5<sup>[**](#dilithium-support)</sup> keys. This library does not offer or intend to offer functionality for SSH connectivity, processing of SSH wire protocol data, or processing of other key formats or types.
 
 **Project Status:** Used by @github in production
 
@@ -59,7 +59,7 @@ in the [NIST Post-Quantum Cryptography Standardization](https://csrc.nist.gov/pr
 provided using the [`roqs` Gem](https://rubygems.org/gems/roqs) that itself wraps the [`liboqs` C library](https://openquantumsafe.org/liboqs/). 
 
 As binary formats for public / private keys and signatures have not yet been standardized, consistency with
-the [OQS-OpenSSH](https://openquantumsafe.org/applications/ssh.html#oqs-openssh) fork has been seeked:
+the [OQS-OpenSSH](https://openquantumsafe.org/applications/ssh.html#oqs-openssh) fork has been sought:
 public keys (typically `id_dilithium5.pub`) and (unencrypted) private keys (typically `id_dilithium5`) generated with 
 
 ```bash
