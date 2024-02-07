@@ -56,7 +56,10 @@ SSHData::PrivateKey::ED25519.generate
 
 Support for the quantum secure digital signature [Dilithium](https://pq-crystals.org/dilithium/index.shtml), a finalist 
 in the [NIST Post-Quantum Cryptography Standardization](https://csrc.nist.gov/projects/post-quantum-cryptography), is 
-provided using the [`roqs` Gem](https://rubygems.org/gems/roqs) that itself wraps the [`liboqs` C library](https://openquantumsafe.org/liboqs/). 
+provided using the [`roqs` Gem](https://rubygems.org/gems/roqs). `roqs` itself wraps the [`liboqs` C library](https://openquantumsafe.org/liboqs/) by inclusion of a Shared Object.
+For security reasons, the shared object file can be compiled locally and exchanged in the `roqs` source,
+namely its `native` directory.
+
 
 As binary formats for public / private keys and signatures have not yet been standardized, consistency with
 the [OQS-OpenSSH](https://openquantumsafe.org/applications/ssh.html#oqs-openssh) fork has been sought:
