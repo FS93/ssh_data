@@ -16,7 +16,8 @@ end
 
 REPO_PATH    = File.expand_path(File.join(__FILE__, "..", ".."))
 FIXTURE_PATH = File.expand_path(File.join(REPO_PATH, "spec", "fixtures"))
-OQS_OPENSSH_SSHKEYGEN_PATH = ""
+puts "Path to OQS-OpenSSH root directory: "
+OQS_OPENSSH_SSHKEYGEN_PATH = $stdin.gets.slice(0...-1) + "/ssh-keygen"
 
 def fixture(name, binary: false, pem: false)
   data = File.read(File.join(FIXTURE_PATH, name))
